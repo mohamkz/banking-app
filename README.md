@@ -8,7 +8,7 @@ A comprehensive banking application built with modern technologies, featuring a 
 banking-system/
 ├── backend/          # Spring Boot REST API
 ├── frontend/         # React + Vite SPA
-├── report/          # Technical documentation
+├── report/          # Project Report
 ```
 
 ## 🛠️ Technology Stack
@@ -94,13 +94,6 @@ npm run build
 mvn clean package -Pprod
 ```
 
-## 📊 Project Documentation
-
-Comprehensive technical documentation is available in the project repository:
-
-📄 **[Download Technical Report (PDF)](./report/project-report.pdf)**
-
-*Documentation includes system architecture, API specifications, database schema, and deployment guides.*
 
 ## 🤝 Contributing Guidelines
 
