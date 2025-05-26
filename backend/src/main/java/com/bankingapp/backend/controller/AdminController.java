@@ -4,6 +4,7 @@ import com.bankingapp.backend.dto.*;
 import com.bankingapp.backend.repository.AccountRepository;
 import com.bankingapp.backend.repository.TransactionRepository;
 import com.bankingapp.backend.repository.UserRepository;
+import com.bankingapp.backend.service.FraudDetectionService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,13 +25,16 @@ public class AdminController {
     private final UserRepository userRepository;
     private final AccountRepository accountRepository;
     private final TransactionRepository transactionRepository;
+    private final FraudDetectionService fraudDetectionService;
 
     public AdminController(UserRepository userRepository,
                            AccountRepository accountRepository,
-                           TransactionRepository transactionRepository) {
+                           TransactionRepository transactionRepository,
+                           FraudDetectionService fraudDetectionService) {
         this.userRepository = userRepository;
         this.accountRepository = accountRepository;
         this.transactionRepository = transactionRepository;
+        this.fraudDetectionService = fraudDetectionService;
     }
 
     @GetMapping("/system-stats")
@@ -121,18 +125,32 @@ public class AdminController {
     }
 
     @GetMapping("/transactions")
-    public ResponseEntity<List<TransactionResponseDTO>> getAllTransactions() {
+    public ResponseEntity<List<AdminTransactionResponseDTO>> getAllTransactions() {
         return ResponseEntity.ok(
                 transactionRepository.findAll().stream()
-                        .map(transaction -> new TransactionResponseDTO(
-                                transaction.getSenderAccount() != null ?
-                                        transaction.getSenderAccount().getAccountNumber() : "SYS_BANK",
-                                transaction.getReceiverAccount().getAccountNumber(),
-                                transaction.getAmount(),
-                                transaction.getDescription(),
-                                transaction.getType().name(),
-                                transaction.getTimestamp()
-                        ))
+                        .map(transaction -> {
+                            TransactionRequestDTO requestDTO = new TransactionRequestDTO(
+                                    transaction.getAmount().doubleValue(),
+                                    transaction.getTimestamp().toString(),
+                                    transaction.getType().name(),
+                                    transaction.getReceiverAccount().getId(),
+                                    transaction.getSenderAccount() != null ?
+                                            transaction.getSenderAccount().getId() : -1
+                            );
+
+                            FraudDetectionDTO fraud = fraudDetectionService.predictFraud(requestDTO);
+
+                            return new AdminTransactionResponseDTO(
+                                    transaction.getSenderAccount() != null ?
+                                            transaction.getSenderAccount().getAccountNumber() : "SYS_BANK",
+                                    transaction.getReceiverAccount().getAccountNumber(),
+                                    transaction.getAmount(),
+                                    transaction.getDescription(),
+                                    transaction.getType().name(),
+                                    transaction.getTimestamp(),
+                                    fraud
+                            );
+                        })
                         .toList()
         );
     }

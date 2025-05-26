@@ -35,23 +35,6 @@ public class AccountService {
         return accountRepository.save(account);
     }
 
-    public void deposit(String accountNumber, BigDecimal amount) {
-        Account account = accountRepository.findByAccountNumber(accountNumber)
-                .orElseThrow(() -> new AccountNotFoundException("Account not found"));
-        account.setBalance(account.getBalance().add(amount));
-        accountRepository.save(account);
-    }
-
-    public void withdraw(String accountNumber, BigDecimal amount) {
-        Account account = accountRepository.findByAccountNumber(accountNumber)
-                .orElseThrow(() -> new AccountNotFoundException("Account not found"));
-        if (account.getBalance().compareTo(amount) < 0) {
-            throw new InsufficientFundsException("Insufficient funds");
-        }
-        account.setBalance(account.getBalance().subtract(amount));
-        accountRepository.save(account);
-    }
-
     public Account validateAccountAccess(String accountNumber, UserDetails userDetails) {
         User user = userRepository.findByEmail(userDetails.getUsername())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
